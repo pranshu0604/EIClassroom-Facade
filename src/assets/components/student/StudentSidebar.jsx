@@ -5,7 +5,7 @@ import {
   NotebookPen,
   FlaskConical,
   LibraryBig,
-  NotepadText,
+  ListTodo,
   UserCircle,
   AudioLines,
   ArrowUp01,
@@ -15,14 +15,12 @@ import {
 import { Sidebar, SidebarBody, SidebarLink } from '../ui/sidebar';
 import {  Routes, Route, Link } from 'react-router-dom';
 import Dash from './Dash';
-import Assignment from './Assignment';
 import Tests from './Tests';
-import Books from './Books';
-import Notes from './Notes';
 import Profile from './Profile';
 import SubjectDashboard from './SubjectDashboard';
-import ManageCourses from './ManageCourses';
+import ManageCourses from './courses/ManageCourses';
 import Cookies from 'js-cookie';
+import Attendance from './attendance/Attendance';
 
 const StudentSidebar = () => {
 
@@ -55,9 +53,9 @@ const StudentSidebar = () => {
       icon: <LayoutDashboard className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
     },
     {
-      label: "Assignment",
-      href: "/students/assignment",
-      icon: <NotebookPen className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+      label: "Attendance",
+      href: "/students/attendance",
+      icon: <ListTodo className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
     },
     {
       label: "Tests",
@@ -86,8 +84,17 @@ const StudentSidebar = () => {
     },
     {
       label: "Logout",
-      href: "/signin",
-      icon: <LogOut className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />
+      href: "#",
+      icon: <LogOut className="text-neutral-700 dark:text-neutral-200 h-5 w-5 flex-shrink-0" />,
+      onClick: () => {
+        Cookies.remove("token");
+        Cookies.remove("firstName");
+        Cookies.remove("lastName");
+        Cookies.remove("userId");
+        Cookies.remove("userEmail");
+        Cookies.remove("userRole");
+        window.location.href = "/signin";
+      }
     }
   ];
   const firstName = Cookies.get("firstName") || "Profile";
@@ -104,10 +111,17 @@ const StudentSidebar = () => {
             {open ? <Logo /> : <LogoIcon />}
             <div className="mt-14 flex flex-col gap-2">
               {links.map((link, idx) => (
-                <Link to={link.href} key={idx} className="flex items-center gap-2 p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg">
-                {link.icon}
-                <span className='text-neutral-700 dark:text-neutral-200 text-md text-nowrap'>{link.label}</span>
-                </Link>
+                link.onClick ? (
+                  <div key={idx} onClick={link.onClick} className="flex items-center gap-2 p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg cursor-pointer">
+                    {link.icon}
+                    <span className='text-neutral-700 dark:text-neutral-200 text-md text-nowrap'>{link.label}</span>
+                  </div>
+                ) : (
+                  <Link to={link.href} key={idx} className="flex items-center gap-2 p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg">
+                    {link.icon}
+                    <span className='text-neutral-700 dark:text-neutral-200 text-md text-nowrap'>{link.label}</span>
+                  </Link>
+                )
               ))}
             </div>
           </div>
@@ -163,7 +177,7 @@ const Dashboard = () => {
           <Routes>
             <Route path="/" element={<Dash />} />
             <Route path="/:subjectCode" element={<SubjectDashboard />} />
-            <Route path="/assignment" element={<Assignment />} />
+            <Route path="/attendance" element={<Attendance />} />
             <Route path="/tests" element={<Tests />} />
             <Route path="/managecourses" element={<ManageCourses />} />
             <Route path="/profile" element={<Profile />} />
@@ -187,10 +201,10 @@ const SettingsPage = () => {
       const newTheme = theme === "dark" ? "light" : "dark";
       setTheme(newTheme);
       document.documentElement.classList.toggle("dark", newTheme === "dark");
-      localStorage.setItem("theme", newTheme);
+      Cookies.set("theme", newTheme);
     };
     useEffect(() => {
-      const savedTheme = localStorage.getItem("theme");
+      const savedTheme = Cookies.get("theme");
       if (savedTheme) {
         setTheme(savedTheme);
         document.documentElement.classList.toggle("dark", savedTheme === "dark");
